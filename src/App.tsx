@@ -5,6 +5,7 @@ import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import './App.css'
 import { SynthMachine, Intervals } from './SynthMachine';
+import * as React from 'react';
 
 const MAX_ITERATIONS = 10;
 
@@ -69,7 +70,17 @@ function App() {
         setIteration(1);
     }
 
-    const renderIntervalsCheckboxes = () => {
+
+    const tileStyle: React.CSSProperties = {
+        display: 'flex',
+        fontSize: 24,
+        fontFamily: 'Roboto',
+        height: 100,
+        justifyContent: 'center',
+        alignItems: 'center',
+    }
+
+    function renderIntervalsCheckboxes(): React.ReactNode {
         const onAddInterval = (interval) => () => {
             if (selectedIntervals.includes(interval)) {
                 const intervals = selectedIntervals.filter(val => val != interval);
@@ -81,16 +92,15 @@ function App() {
 
         return Intervals.map(interval => (
             <Grid item xs={6} key={interval}>
-                <Paper onClick={onAddInterval(interval)}elevation={1} style={{
-                    display: 'flex',
-                    backgroundColor: selectedIntervals.includes(interval) ? 'green' : 'white',
-                    color: selectedIntervals.includes(interval) ? 'white' : 'black',
-                    fontSize: 24,
-                    fontFamily: 'Roboto',
-                    height: 100,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}>{interval}</Paper>
+                <Paper
+                    onClick={onAddInterval(interval)}
+                    elevation={1}
+                    style={{
+                        backgroundColor: selectedIntervals.includes(interval) ? 'green' : 'white',
+                        color: selectedIntervals.includes(interval) ? 'white' : 'black',
+                        ...tileStyle,
+                    }}
+                >{interval}</Paper>
             </Grid>
         ))
     }
@@ -126,23 +136,22 @@ function App() {
 
         return intervalsForGame.map(val => (
             <Grid item xs={6} key={val}>
-                <Paper onClick={onSelectAnswer(val)} elevation={1} style={{
-                    display: 'flex',
-                    backgroundColor: selectedAnswer === val
-                        ? (val === interval ? 'green' : 'red')
-                        : (selectedAnswer && val === interval ? 'green' : 'white'),
-                    color: 'black',
-                    fontSize: 24,
-                    fontFamily: 'Roboto',
-                    height: 100,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}>{val}</Paper>
+                <Paper
+                    onClick={onSelectAnswer(val)}
+                    elevation={1}
+                    style={{
+                        backgroundColor: selectedAnswer === val
+                            ? (val === interval ? 'green' : 'red')
+                            : (selectedAnswer && val === interval ? 'green' : 'white'),
+                        color: 'black',
+                        ...tileStyle,
+                    }}
+                >{val}</Paper>
             </Grid>
         ))
     }
 
-    const renderValues = () => <>{interval} from {first} to {second}</>
+    const renderRandomValues = () => <>{interval} from {first} to {second}</>
 
     const renderIntervalsTraining = () => (
         <>
@@ -170,46 +179,59 @@ function App() {
         </>
     )
 
+    const ActionButtons: React.ReactNode =
+        !isPlaying ?
+        (
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
+            <div className="card">
+                <button onClick={onPracticeBtn}>
+                    {selectedIntervals.length ? 'Practice' : 'Select intervals'}
+                </button>
+            </div>
+            <div className="card">
+                <button onClick={onStartGame}>
+                    Start game
+                </button>
+            </div>
+            </div>
+        ) : (
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
+                <div className="card">
+                    <button onClick={onReplay}>
+                        Replay
+                    </button>
+                </div>
+                <div className="card">
+                    <button onClick={onQuitGame}>
+                        Quit game
+                    </button>
+                </div>
+            </div>
+        );
+
+    const PracticeValues: React.ReactNode = (
+        <p className="read-the-docs">
+            {!isPlaying && interval && renderRandomValues()}
+            {isPlaying && `${iteration} / ${MAX_ITERATIONS}`}
+        </p>
+    )
+
+
+    const Footer: React.ReactNode = (
+        <p className="read-the-docs">
+            Created with <Favorite /> by Rudolf Cicko © 2022
+        </p>
+    )
+
     return (
         <div className="App">
             <p className="read-the-docs">
                 Best score is {bestScore}
             </p>
             {isPlaying ? renderPlayingBoard() : renderIntervalsTraining()}
-            {!isPlaying ?
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
-                    <div className="card">
-                        <button onClick={onPracticeBtn}>
-                            {selectedIntervals.length ? 'Practice' : 'Select intervals'}
-                        </button>
-                    </div>
-                    <div className="card">
-                        <button onClick={onStartGame}>
-                            Start game
-                        </button>
-                    </div>
-                </div> : (
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
-                    <div className="card">
-                        <button onClick={onReplay}>
-                            Replay
-                        </button>
-                    </div>
-                    <div className="card">
-                        <button onClick={onQuitGame}>
-                            Quit game
-                        </button>
-                    </div>
-                </div>
-                )
-            }
-            <p className="read-the-docs">
-                {!isPlaying && interval && renderValues()}
-                {isPlaying && `${iteration} / ${MAX_ITERATIONS}`}
-            </p>
-            <p className="read-the-docs">
-                Created with <Favorite /> by Rudolf Cicko © 2022
-            </p>
+            {ActionButtons}
+            {PracticeValues}
+            {Footer}
         </div>
     )
 }
