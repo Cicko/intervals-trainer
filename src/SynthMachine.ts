@@ -52,8 +52,6 @@ export class SynthMachine {
 
     constructor() {
         this._synth = new Tone.Synth().toDestination();
-        this.playRandomInterval.bind(this);
-        this.replay.bind(this);
     }
 
     public get synth() {
