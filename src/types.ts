@@ -15,3 +15,21 @@ export type Interval =
     '7m' |
     '7M' |
     '8P';
+
+
+
+export interface IIntervalCounter {
+    correct: number,
+    wrong: number,
+}
+
+export type IStatisticsCounter = Record<Interval, IIntervalCounter>;
+
+
+/**
+ *
+ * GENERIC TYPES
+ *
+**/
+
+export type Accumulator<T> = T | undefined | null;

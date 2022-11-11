@@ -1,8 +1,8 @@
 import * as Tone from 'tone';
-import { getNoteString, getRandomItem } from './utils';
-import { Alteration, Interval, Note } from './types';
+import { getRandomItem } from './utils';
+import { Accumulator } from './types';
 
-export const intervalsSemitonesMap: Record<Interval, number> = {
+export const intervalsSemitonesMap: Record<Exclude<string, undefined>, number> = {
     '2m': 1,
     '2M': 2,
     '3m': 3,
@@ -17,13 +17,14 @@ export const intervalsSemitonesMap: Record<Interval, number> = {
     '8P': 12,
 };
 
-export function getIntervalSemitones(interval): number {
+export function getIntervalSemitones(interval: string): number {
+    if (!interval) {
+        return 0;
+    }
     return intervalsSemitonesMap[interval];
 }
 
-export const Notes: Note[] = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-export const Alterations: Alteration[] = ['None', '#', 'b'];
-export const Intervals: Interval[] = ['2m', '2M', '3m', '3M', '4P', 'TT', '5P', '6m', '6M', '7m', '7M', '8P']
+export const Intervals: string[] = Object.keys(intervalsSemitonesMap);
 export const NotesWithAlterations: string[] = [
     'C',
     'C#',
@@ -48,7 +49,7 @@ interface IPlayRandomResponse {
 
 export class SynthMachine {
     private readonly _synth: Tone.Synth;
-    private result: IPlayRandomResponse;
+    private result: Accumulator<IPlayRandomResponse> = undefined;
 
     constructor() {
         this._synth = new Tone.Synth().toDestination();
@@ -58,12 +59,9 @@ export class SynthMachine {
         return this._synth;
     }
 
-    public playRandomInterval(intervals: Interval[]): IPlayRandomResponse {
+    public playRandomInterval(intervals: string[]): IPlayRandomResponse {
         const randomInterval = getRandomItem(intervals);
-        let randomFirstNote = getNoteString(
-            getRandomItem(Notes),
-            getRandomItem(['None', '#'])
-        );
+        let randomFirstNote = getRandomItem(NotesWithAlterations);
         let secondNote = this
             .buildSecondNote(randomFirstNote, randomInterval);
         secondNote = secondNote.concat(
@@ -82,7 +80,7 @@ export class SynthMachine {
         return this.result;
     }
 
-    private buildSecondNote(firstNote, interval): string {
+    private buildSecondNote(firstNote: string, interval: string): string {
         const intervalSemitones = getIntervalSemitones(interval);
         const firstNoteInx = NotesWithAlterations.indexOf(firstNote);
         const secondNoteInx = firstNoteInx + intervalSemitones;
@@ -97,7 +95,7 @@ export class SynthMachine {
     }
 
     public replay() {
-        if (this.result.first && this.result.second) {
+        if (this.result?.first && this.result?.second) {
             const now = Tone.now()
             this.synth.triggerAttackRelease(this.result.first, "8n", now)
             this.synth.triggerAttackRelease(this.result.second, "8n", now + 0.5);
