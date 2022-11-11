@@ -93,12 +93,4 @@ export class SynthMachine {
         this.synth.triggerAttackRelease(note1, "8n", now)
         this.synth.triggerAttackRelease(note2, "8n", now + 0.5);
     }
-
-    public replay() {
-        if (this.result?.first && this.result?.second) {
-            const now = Tone.now()
-            this.synth.triggerAttackRelease(this.result.first, "8n", now)
-            this.synth.triggerAttackRelease(this.result.second, "8n", now + 0.5);
-        }
-    }
 }
