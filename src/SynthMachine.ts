@@ -1,6 +1,6 @@
 import * as Tone from 'tone';
 import { getRandomItem } from './utils';
-import { Accumulator } from './types';
+import { Accumulator, Interval } from './types';
 
 export const intervalsSemitonesMap: Record<Exclude<string, undefined>, number> = {
     '2m': 1,
@@ -24,7 +24,7 @@ export function getIntervalSemitones(interval: string): number {
     return intervalsSemitonesMap[interval];
 }
 
-export const Intervals: string[] = Object.keys(intervalsSemitonesMap);
+export const Intervals: Interval[] = Object.keys(intervalsSemitonesMap);
 export const NotesWithAlterations: string[] = [
     'C',
     'C#',
