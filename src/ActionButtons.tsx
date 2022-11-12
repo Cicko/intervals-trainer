@@ -13,7 +13,6 @@ export interface ActionButtonsProps {
     readonly selectedIntervals: Interval[];
     readonly onPractice: () => void;
     readonly onStartGame: () => void;
-    readonly onStartGameWrongIntervals: () => void;
     readonly onReplay: () => void;
     readonly onQuitGame: () => void;
 }
