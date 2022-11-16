@@ -16,13 +16,11 @@ const MAX_ITERATIONS = 10;
 function App() {
     const [machine, setMachine] = useState(new SynthMachine());
     let timer: number;
+
+    // PITCH DETECTION
     const [pitchDetector, setPitchDetector] = useState(new PitchDetector(pitchDetectionCb));
     const [isPitchDetecting, setIsPitchDetecting] = useState<boolean>(false);
     const [pitchNote, setPitchNote] = useState<string>('');
-
-    useEffect(() => {
-        setIsPitchDetecting(pitchDetector.isRunning);
-    }, [pitchNote]);
 
     // PRACTICE
     const [selectedIntervals, setSelectedIntervals] = useState<Interval[]>([]);

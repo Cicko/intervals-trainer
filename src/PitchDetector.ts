@@ -38,7 +38,6 @@ export class PitchDetector {
     }
 
     public startPitchDetection(): void {
-        console.log('Start pitch detection');
         this._ctx = new AudioContext();
         this._analyser = this._ctx.createAnalyser();
 
