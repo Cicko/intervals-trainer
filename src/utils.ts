@@ -1,6 +1,5 @@
 
-import {Alteration, Interval, IStatisticsCounter, Note} from './types';
-import { Intervals } from './SynthMachine';
+import {Alteration, Note, Notes} from './types';
 
 export function getRandomItem(array: Array<any>) {
     return array[Math.floor(Math.random() * array.length)];
@@ -13,27 +12,55 @@ export function getNoteString(note: Note, alteration: Alteration ): string {
     return note.concat(alterationString)
 }
 
-export function getMostWrongIntervals(counter: IStatisticsCounter, len: number, minWrong?: number): Interval[] {
-    const intervalsSortedByWrongNum = [...Intervals].sort((val, val2) => {
-        const wrong1 = counter[val].wrong;
-        const wrong2 = counter[val2].wrong;
-
-        return wrong2 - wrong1;
-    });
-    return intervalsSortedByWrongNum
-        .filter(v => counter[v].wrong >= (minWrong || 0))
-        .filter((v, i) => i<len)
+export function getNoteFromPitch(frequency: number) {
+    const noteNum = 12 * (Math.log(frequency / 440)/Math.log(2));
+    return Notes[(Math.round(noteNum) + 69) % 12];
 }
 
-export function getMostCorrectIntervals(counter: IStatisticsCounter, len: number, minCorrect?: number): Interval[] {
-    const intervalsSortedByCorrectNum = [...Intervals].sort((val, val2) => {
-        const correct1 = counter[val].correct;
-        const correct2 = counter[val2].correct;
+export function autoCorrelate(buf: Float32Array, sampleRate: number) {
+    // Implements the ACF2+ algorithm
+    var SIZE = buf.length;
+    var rms = 0;
 
-        return correct2 - correct1;
-    });
+    for (let i = 0; i < SIZE; i++) {
+        rms += buf[i] * buf[i];
+    }
+    rms = Math.sqrt(rms/SIZE); // una especie de media
 
-    return intervalsSortedByCorrectNum
-        .filter(v => counter[v].correct > (minCorrect || 0))
-        .filter((v, i) => i<len)
+    if (rms < 0.01) // not enough signal
+        return -1;
+
+    let r1 = 0,
+        r2 = SIZE - 1,
+        thres = 0.2;
+
+    for (let i = 0; i < SIZE / 2; i++)
+        if (Math.abs(buf[i]) < thres) { r1=i; break; }
+    for (let i = 1;  i < SIZE / 2; i++)
+        if (Math.abs(buf[SIZE - i]) < thres) { r2 = SIZE - i; break; }
+
+    buf = buf.slice(r1,r2);
+    SIZE = buf.length;
+
+    let c = new Array(SIZE).fill(0);
+    for (var i = 0; i < SIZE; i++)
+        for (var j = 0; j < SIZE - i; j++)
+            c[i] = c[i] + buf[j]*buf[j+i];
+
+    var d=0; while (c[d]>c[d+1]) d++;
+    var maxval=-1, maxpos=-1;
+    for (var i=d; i<SIZE; i++) {
+        if (c[i] > maxval) {
+            maxval = c[i];
+            maxpos = i;
+        }
+    }
+    var T0 = maxpos;
+
+    var x1=c[T0-1], x2=c[T0], x3=c[T0+1];
+    let a = (x1 + x3 - 2*x2)/2;
+    let b = (x3 - x1)/2;
+    if (a) T0 = T0 - b/(2*a);
+
+    return sampleRate/T0;
 }

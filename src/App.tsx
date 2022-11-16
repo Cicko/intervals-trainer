@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Favorite } from '@mui/icons-material';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
-import Rating from '@mui/material/Rating';
 import Box from '@mui/material/Box';
 import './App.css'
 import { SynthMachine, Intervals } from './SynthMachine';
@@ -11,12 +9,20 @@ import { Accumulator, Interval } from './types';
 import { tileStyle } from './commons';
 import { ActionButtons } from './ActionButtons';
 import { BoardGame } from './BoardGame';
+import { PitchDetector } from "./PitchDetector";
 
 const MAX_ITERATIONS = 10;
 
 function App() {
     const [machine, setMachine] = useState(new SynthMachine());
     let timer: number;
+    const [pitchDetector, setPitchDetector] = useState(new PitchDetector(pitchDetectionCb));
+    const [isPitchDetecting, setIsPitchDetecting] = useState<boolean>(false);
+    const [pitchNote, setPitchNote] = useState<string>('');
+
+    useEffect(() => {
+        setIsPitchDetecting(pitchDetector.isRunning);
+    }, [pitchNote]);
 
     // PRACTICE
     const [selectedIntervals, setSelectedIntervals] = useState<Interval[]>([]);
@@ -33,6 +39,20 @@ function App() {
     const [selectedAnswer, setSelectedAnswer] = useState<Accumulator<Interval>>(undefined);
     const [iteration, setIteration] = useState(0);
 
+    function pitchDetectionCb(note: string): void {
+        setPitchNote(note);
+    }
+
+    function onPitchDetect(): void {
+        if (pitchDetector.isRunning) {
+            setIsPitchDetecting(false);
+            setPitchNote('');
+            pitchDetector.stopPitchDetection();
+        } else {
+            setIsPitchDetecting(true);
+            pitchDetector.startPitchDetection();
+        }
+    }
 
     function playRandomInterval(practice: boolean) {
         const values = machine.playRandomInterval(
@@ -46,7 +66,7 @@ function App() {
     function playRandomIntervalInOneSecond() {
         timer = setTimeout(() => {
             setSelectedAnswer(undefined);
-            playRandomInterval();
+            playRandomInterval(false);
         }, 1000);
     }
 
@@ -149,6 +169,7 @@ function App() {
         <p className="read-the-docs">
             {!isPlaying && interval && renderRandomValues()}
             {isPlaying && `${iteration} / ${MAX_ITERATIONS}`}
+            {pitchNote}
         </p>
     )
 
@@ -168,11 +189,13 @@ function App() {
             }
             <ActionButtons
                 isPlaying={isPlaying}
+                isPitchDetecting={isPitchDetecting}
                 selectedIntervals={selectedIntervals}
                 onPractice={onPractice}
                 onQuitGame={onQuitGame}
                 onReplay={onReplay}
                 onStartGame={onStartGame}
+                onPitchDetect={onPitchDetect}
             />
             {PracticeValues}
         </div>

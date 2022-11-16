@@ -10,18 +10,22 @@ import { Interval } from './types';
 
 export interface ActionButtonsProps {
     readonly isPlaying: boolean;
+    readonly isPitchDetecting: boolean;
     readonly selectedIntervals: Interval[];
     readonly onPractice: () => void;
     readonly onStartGame: () => void;
     readonly onReplay: () => void;
     readonly onQuitGame: () => void;
+    readonly onPitchDetect: () => void;
 }
 
 export function ActionButtons(props: ActionButtonsProps): React.ReactElement {
     const {
         isPlaying,
+        isPitchDetecting,
         selectedIntervals,
         onPractice,
+        onPitchDetect,
         onReplay,
         onStartGame,
         onQuitGame,
@@ -51,6 +55,9 @@ export function ActionButtons(props: ActionButtonsProps): React.ReactElement {
             }
             <Button startIcon={<PlayIcon />}  variant="contained" onClick={onStartGame}>
                 Start game (with {selectedIntervals.length > 1 ?  selectedIntervals.length : 12} intervals)
+            </Button>
+            <Button startIcon={<PlayIcon />}  variant="contained" onClick={onPitchDetect}>
+                {isPitchDetecting ? 'Stop' : 'Start'} Pitch Detection
             </Button>
         </Stack>
     )

@@ -1,6 +1,6 @@
 import * as Tone from 'tone';
 import { getRandomItem } from './utils';
-import { Accumulator } from './types';
+import { Accumulator, Notes } from './types';
 
 export const intervalsSemitonesMap: Record<Exclude<string, undefined>, number> = {
     '2m': 1,
@@ -25,20 +25,6 @@ export function getIntervalSemitones(interval: string): number {
 }
 
 export const Intervals: string[] = Object.keys(intervalsSemitonesMap);
-export const NotesWithAlterations: string[] = [
-    'C',
-    'C#',
-    'D',
-    'D#',
-    'E',
-    'F',
-    'F#',
-    'G',
-    'G#',
-    'A',
-    'A#',
-    'B'
-];
 
 interface IPlayRandomResponse {
     readonly first: string;
@@ -61,12 +47,12 @@ export class SynthMachine {
 
     public playRandomInterval(intervals: string[]): IPlayRandomResponse {
         const randomInterval = getRandomItem(intervals);
-        let randomFirstNote = getRandomItem(NotesWithAlterations);
+        let randomFirstNote = getRandomItem(Notes);
         let secondNote = this
             .buildSecondNote(randomFirstNote, randomInterval);
         secondNote = secondNote.concat(
-            NotesWithAlterations.indexOf(randomFirstNote) >=
-            NotesWithAlterations.indexOf(secondNote) ?
+            Notes.indexOf(randomFirstNote) >=
+            Notes.indexOf(secondNote) ?
                 '5' : '4'
         );
         randomFirstNote = randomFirstNote.concat('4');
@@ -82,9 +68,9 @@ export class SynthMachine {
 
     private buildSecondNote(firstNote: string, interval: string): string {
         const intervalSemitones = getIntervalSemitones(interval);
-        const firstNoteInx = NotesWithAlterations.indexOf(firstNote);
+        const firstNoteInx = Notes.indexOf(firstNote);
         const secondNoteInx = firstNoteInx + intervalSemitones;
-        return NotesWithAlterations[secondNoteInx % NotesWithAlterations.length];
+        return Notes[secondNoteInx % Notes.length];
     }
 
 
