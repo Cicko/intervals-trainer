@@ -3,10 +3,8 @@ import Box from '@mui/material/Box';
 import * as React from 'react';
 import { Intervals } from './SynthMachine';
 import Paper from '@mui/material/Paper';
-import { Accumulator } from './types';
+import { Accumulator, Interval } from './types';
 import { tileStyle } from './commons';
-
-type Interval = string;
 
 export interface IBoardGame {
     readonly interval: Accumulator<Interval>;

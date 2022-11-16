@@ -7,10 +7,8 @@ import Box from '@mui/material/Box';
 import './App.css'
 import { SynthMachine, Intervals } from './SynthMachine';
 import * as React from 'react';
-import {Accumulator, Interval, IStatisticsCounter} from './types';
-import { InitialCounter, tileStyle } from './commons';
-import { StatisticsBoard } from './StatisticsBoard';
-import { getMostWrongIntervals } from './utils';
+import { Accumulator, Interval } from './types';
+import { tileStyle } from './commons';
 import { ActionButtons } from './ActionButtons';
 import { BoardGame } from './BoardGame';
 
@@ -34,17 +32,6 @@ function App() {
     const [bestScore, setBestScore] = useState(Number(window.localStorage.getItem('score')) || 0);
     const [selectedAnswer, setSelectedAnswer] = useState<Accumulator<Interval>>(undefined);
     const [iteration, setIteration] = useState(0);
-
-    // STATISTICS
-    const localStorageCounter = window.localStorage.getItem('counter');
-    const [counter, setCounter] = useState<IStatisticsCounter>(
-        localStorageCounter ? JSON.parse(localStorageCounter) : InitialCounter
-    );
-
-
-    useEffect(() => {
-        window.localStorage.setItem('counter', JSON.stringify(counter));
-    }, [counter]);
 
 
     function playRandomInterval(practice: boolean) {
@@ -73,14 +60,6 @@ function App() {
         setSelectedAnswer(undefined);
         setInterval(undefined);
         playRandomIntervalInOneSecond();
-
-    }
-
-    const onStartMostWrong = () => {
-        setSelectedIntervals(getMostWrongIntervals(counter,3));
-        setTimeout(() => {
-            onStartGame();
-        }, 1000);
     }
 
     const onReplay = () => {
@@ -120,42 +99,16 @@ function App() {
         ))
     }
 
-    function increaseCorrectCounterFor(interval: Interval): void {
-        if (interval) {
-            setCounter({
-                ...counter,
-                [interval]: {
-                    correct: counter[interval].correct + 1,
-                    wrong: counter[interval].wrong,
-                },
-            });
-        }
-    }
-
-    function increaseWrongCounterFor(interval: Interval): void {
-        if (interval) {
-            setCounter({
-                ...counter,
-                [interval]: {
-                    wrong: counter[interval].wrong + 1,
-                    correct: counter[interval].correct,
-                },
-            });
-        }
-    }
-
     const onSelectAnswer = (selected: Interval) => () => {
         setSelectedAnswer(selected)
         const isAnswerCorrect: boolean = interval === selected;
         if (isAnswerCorrect) {
             const extraPoints = selectedIntervals.length || Intervals.length;
-            increaseCorrectCounterFor(interval!);
             setScore(score + extraPoints);
         } else {
             if (score - 5 < 0) {
                 setTimeout(() => onQuitGame(), 1000);
             }
-            increaseWrongCounterFor(interval!);
             setScore(score - 2 < 0 ? 0 : score - 2);
         }
         if (iteration === MAX_ITERATIONS) {
@@ -199,16 +152,8 @@ function App() {
         </p>
     )
 
-
-    const Footer: React.ReactNode = (
-        <p className="read-the-docs">
-            Created with <Favorite /> by Rudolf Cicko © 2022
-        </p>
-    )
-
     return (
         <div className="App">
-            {/*<StatisticsBoard counter={counter}/>*/}
             {ScoreResult}
             {isPlaying
                 ?
@@ -228,15 +173,8 @@ function App() {
                 onQuitGame={onQuitGame}
                 onReplay={onReplay}
                 onStartGame={onStartGame}
-                onStartGameWrongIntervals={onStartMostWrong}
-            />
-            <Rating
-                name="simple-controlled"
-                value={(selectedIntervals.length / 12) * 5}
-                style={{marginTop: 20}}
             />
             {PracticeValues}
-            {Footer}
         </div>
     )
 }
