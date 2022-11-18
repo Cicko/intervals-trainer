@@ -16,7 +16,7 @@ export interface ActionButtonsProps {
     readonly onStartGame: () => void;
     readonly onReplay: () => void;
     readonly onQuitGame: () => void;
-    readonly onPitchDetect: () => void;
+    readonly onStartPitchGame: () => void;
 }
 
 export function ActionButtons(props: ActionButtonsProps): React.ReactElement {
@@ -25,7 +25,7 @@ export function ActionButtons(props: ActionButtonsProps): React.ReactElement {
         isPitchDetecting,
         selectedIntervals,
         onPractice,
-        onPitchDetect,
+        onStartPitchGame,
         onReplay,
         onStartGame,
         onQuitGame,
@@ -56,8 +56,8 @@ export function ActionButtons(props: ActionButtonsProps): React.ReactElement {
             <Button startIcon={<PlayIcon />}  variant="contained" onClick={onStartGame}>
                 Start game (with {selectedIntervals.length > 1 ?  selectedIntervals.length : 12} intervals)
             </Button>
-            <Button startIcon={<PlayIcon />}  variant="contained" onClick={onPitchDetect}>
-                {isPitchDetecting ? 'Stop' : 'Start'} Pitch Detection
+            <Button startIcon={<PlayIcon />}  variant="contained" onClick={onStartPitchGame}>
+                Start Pitch Game
             </Button>
         </Stack>
     )

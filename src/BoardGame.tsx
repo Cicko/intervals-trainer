@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import * as React from 'react';
 import { Intervals } from './SynthMachine';
 import Paper from '@mui/material/Paper';
-import { Accumulator, Interval } from './types';
+import {Accumulator, GameMode, GameModeType, Interval} from './types';
 import { tileStyle } from './commons';
 
 export interface IBoardGame {
@@ -12,11 +12,13 @@ export interface IBoardGame {
     readonly selectedAnswer: Accumulator<Interval>;
     readonly selectedIntervals: Interval[];
     readonly score: number;
+    readonly gameMode: GameModeType;
 }
 
 export function BoardGame(props: IBoardGame): React.ReactElement {
     const {
         interval,
+        gameMode,
         onSelectAnswer,
         selectedAnswer,
         selectedIntervals,
@@ -27,15 +29,23 @@ export function BoardGame(props: IBoardGame): React.ReactElement {
         const intervalsForGame = selectedIntervals.length > 1 ? Intervals
             .filter(val => selectedIntervals.includes(val)) : Intervals;
 
+        const bgColorForIntervalGuessing = (val: string) =>
+                selectedAnswer === val
+                    ? (val === interval ? 'green' : 'red')
+                    : (selectedAnswer && val === interval ? 'green' : 'white');
+
+        const bgColorForPitchDetection = (val: string) =>
+                selectedAnswer === val ? (val === interval ? 'green' : 'red') : 'white';
+
         return intervalsForGame.map(val => (
             <Grid item xs={6} sm={intervalsForGame.length % 2 === 0 ? 6 : 4} key={val}>
                 <Paper
                     onClick={onSelectAnswer(val)}
                     elevation={1}
                     style={{
-                        backgroundColor: selectedAnswer === val
-                            ? (val === interval ? 'green' : 'red')
-                            : (selectedAnswer && val === interval ? 'green' : 'white'),
+                        backgroundColor: gameMode === GameMode.INTERVAL_GUESSING
+                            ? bgColorForIntervalGuessing(val)
+                            : bgColorForPitchDetection(val),
                         color: 'black',
                         ...tileStyle,
                     }}

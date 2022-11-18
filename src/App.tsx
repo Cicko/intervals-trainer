@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react'
+import {useCallback, useEffect, useState} from 'react'
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import './App.css'
 import { SynthMachine, Intervals } from './SynthMachine';
 import * as React from 'react';
-import { Accumulator, Interval } from './types';
+import {Accumulator, GameMode, GameModeType, Interval} from './types';
 import { tileStyle } from './commons';
 import { ActionButtons } from './ActionButtons';
 import { BoardGame } from './BoardGame';
 import { PitchDetector } from "./PitchDetector";
+import {getIntervalFromTwoNotes} from "./utils";
 
 const MAX_ITERATIONS = 10;
 
@@ -25,7 +26,7 @@ function App() {
     // PRACTICE
     const [selectedIntervals, setSelectedIntervals] = useState<Interval[]>([]);
     const [first, setFirst] = useState('');
-    const [second, setSecond] = useState('');
+    const [second, setSecond] = useState('pepe');
 
     // SHARED
     const [interval, setInterval] = useState<Accumulator<Interval>>(undefined);
@@ -36,12 +37,25 @@ function App() {
     const [bestScore, setBestScore] = useState(Number(window.localStorage.getItem('score')) || 0);
     const [selectedAnswer, setSelectedAnswer] = useState<Accumulator<Interval>>(undefined);
     const [iteration, setIteration] = useState(0);
+    const [gameMode, setGameMode] = useState<Accumulator<GameModeType>>(undefined);
 
-    function pitchDetectionCb(note: string): void {
+    useEffect(() => {
+        if (isPlaying) {
+            const sangInterval = getIntervalFromTwoNotes(first.slice(0, -1), pitchNote)
+            setSelectedAnswer(sangInterval);
+            if (sangInterval === interval) {
+                setTimeout(() => {
+                    pitchDetector.startPitchDetection();
+                }, 1000);
+            }
+        }
+    }, [pitchNote]);
+
+    function pitchDetectionCb(note: string) {
         setPitchNote(note);
     }
 
-    function onPitchDetect(): void {
+    function startOrStopPitchDetector(): void {
         if (pitchDetector.isRunning) {
             setIsPitchDetecting(false);
             setPitchNote('');
@@ -73,6 +87,7 @@ function App() {
     }
 
     const onStartGame = () => {
+        setGameMode(GameMode.INTERVAL_GUESSING);
         setScore(0);
         setIsPlaying(true);
         setSelectedAnswer(undefined);
@@ -80,8 +95,34 @@ function App() {
         playRandomIntervalInOneSecond();
     }
 
+    const onStartPitchGame = () => {
+        setGameMode(GameMode.PITCH_DETECTION);
+        setScore(0);
+        setIsPlaying(true);
+        setSelectedAnswer(undefined);
+        setInterval(undefined);
+        startPitchGame();
+    }
+
+    function startPitchGame(): void {
+        const result = machine.playOneRandomNoteAndReturnIntervalResults(
+            selectedIntervals.length > 1 ? selectedIntervals : Intervals
+        );
+        console.log(result);
+        setFirst(result.first);
+        setInterval(result.interval);
+        setSecond(result.second);
+        setTimeout(() => {
+            startOrStopPitchDetector();
+        }, 500);
+    }
+
     const onReplay = () => {
-        machine.replay();
+        if (gameMode === GameMode.PITCH_DETECTION) {
+            machine.replayOneNote();
+        } else {
+            machine.replay();
+        }
     }
 
     const onQuitGame = () => {
@@ -90,6 +131,9 @@ function App() {
         clearTimeout(timer);
         setMachine(new SynthMachine());
         setIteration(1);
+        if (gameMode === GameMode.PITCH_DETECTION) {
+            startOrStopPitchDetector();
+        }
     }
 
     function renderIntervalsTiles(): React.ReactNode {
@@ -179,7 +223,8 @@ function App() {
                 <BoardGame
                     interval={interval}
                     onSelectAnswer={onSelectAnswer}
-                    selectedAnswer={selectedAnswer}
+                    selectedAnswer={selectedAnswer || String(pitchNote)}
+                    gameMode={gameMode!}
                     selectedIntervals={selectedIntervals}
                     score={score}
                 />
@@ -193,9 +238,15 @@ function App() {
                 onQuitGame={onQuitGame}
                 onReplay={onReplay}
                 onStartGame={onStartGame}
-                onPitchDetect={onPitchDetect}
+                onStartPitchGame={onStartPitchGame}
             />
             {PracticeValues}
+            {gameMode === GameMode.PITCH_DETECTION && isPlaying && (
+                <div>
+                    <h1>Sing interval {interval}</h1>
+                    <h2>Singing {pitchNote}</h2>
+                </div>
+            )}
         </div>
     )
 }

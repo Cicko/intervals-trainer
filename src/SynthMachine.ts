@@ -1,6 +1,7 @@
 import * as Tone from 'tone';
 import { getRandomItem } from './utils';
 import { Accumulator, Notes } from './types';
+import {Seconds} from "tone/Tone/core/type/Units";
 
 export const intervalsSemitonesMap: Record<Exclude<string, undefined>, number> = {
     '2m': 1,
@@ -66,6 +67,24 @@ export class SynthMachine {
         return this.result;
     }
 
+    public playOneRandomNoteAndReturnIntervalResults(intervals: string[]): IPlayRandomResponse {
+        const randomInterval = getRandomItem(intervals);
+        let randomFirstNote = getRandomItem(Notes);
+        let secondNote = this
+            .buildSecondNote(randomFirstNote, randomInterval);
+
+        randomFirstNote = randomFirstNote.concat('4');
+        this.playOneNote(randomFirstNote);
+
+        this.result = {
+            first: randomFirstNote,
+            second: secondNote,
+            interval: randomInterval,
+        }
+
+        return this.result;
+    }
+
     private buildSecondNote(firstNote: string, interval: string): string {
         const intervalSemitones = getIntervalSemitones(interval);
         const firstNoteInx = Notes.indexOf(firstNote);
@@ -75,9 +94,21 @@ export class SynthMachine {
 
 
     private playInterval(note1: string, note2: string) {
-        const now = Tone.now()
-        this.synth.triggerAttackRelease(note1, "8n", now)
-        this.synth.triggerAttackRelease(note2, "8n", now + 0.5);
+        const now: Seconds = Tone.now()
+        this.playNote(note1, now);
+        this.playNote(note2, now + 0.5);
+
+        //this.synth.triggerAttackRelease(note1, "8n", now)
+        //this.synth.triggerAttackRelease(note2, "8n", now + 0.5);
+    }
+
+    private playOneNote(note: string): void {
+        const now: Seconds = Tone.now();
+        this.playNote(note, now);
+    }
+
+    private playNote(note: string, time: Seconds): void {
+        this.synth.triggerAttackRelease(note, "8n", time);
     }
 
     public replay() {
@@ -85,6 +116,12 @@ export class SynthMachine {
             const now = Tone.now()
             this.synth.triggerAttackRelease(this.result.first, "8n", now)
             this.synth.triggerAttackRelease(this.result.second, "8n", now + 0.5);
+        }
+    }
+
+    public replayOneNote() {
+        if (this.result?.first) {
+            this.playOneNote(this.result.first);
         }
     }
 }

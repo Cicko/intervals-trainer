@@ -1,5 +1,6 @@
 
-import {Alteration, Note, Notes} from './types';
+import {Alteration, Interval, Note, Notes} from './types';
+import {Intervals, intervalsSemitonesMap} from "./SynthMachine";
 
 export function getRandomItem(array: Array<any>) {
     return array[Math.floor(Math.random() * array.length)];
@@ -15,6 +16,17 @@ export function getNoteString(note: Note, alteration: Alteration ): string {
 export function getNoteFromPitch(frequency: number) {
     const noteNum = 12 * (Math.log(frequency / 440)/Math.log(2));
     return Notes[(Math.round(noteNum) + 69) % 12];
+}
+
+
+export function getIntervalFromTwoNotes(note1: string, note2: string): Interval {
+    const firstNoteInx = Notes.indexOf(note1);
+    const secondNoteInx = Notes.indexOf(note2);
+    const semitones = secondNoteInx - firstNoteInx > 0 ? secondNoteInx - firstNoteInx : 12 + secondNoteInx - firstNoteInx;
+    console.log("SEMITONES: " + semitones);
+    console.log('===================================');
+
+    return Intervals[semitones - 1];
 }
 
 export function autoCorrelate(buf: Float32Array, sampleRate: number) {
