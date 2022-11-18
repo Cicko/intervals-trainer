@@ -1,7 +1,9 @@
-import {useCallback, useEffect, useState} from 'react'
+import { useEffect, useState} from 'react'
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import './App.css'
 import { SynthMachine, Intervals } from './SynthMachine';
 import * as React from 'react';
@@ -13,6 +15,14 @@ import { PitchDetector } from "./PitchDetector";
 import {getIntervalFromTwoNotes} from "./utils";
 
 const MAX_ITERATIONS = 10;
+
+
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
+    props,
+    ref,
+) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 function App() {
     const [machine, setMachine] = useState(new SynthMachine());
@@ -39,15 +49,26 @@ function App() {
     const [iteration, setIteration] = useState(0);
     const [gameMode, setGameMode] = useState<Accumulator<GameModeType>>(undefined);
 
+
+
+    const [snackOpen, setSnackOpen] = React.useState(false);
+    const handleSnackOpen = () => {
+        setSnackOpen(true);
+    };
+
+
     useEffect(() => {
         if (isPlaying) {
             const sangInterval = getIntervalFromTwoNotes(first.slice(0, -1), pitchNote)
             setSelectedAnswer(sangInterval);
+            /*
             if (sangInterval === interval) {
                 setTimeout(() => {
                     pitchDetector.startPitchDetection();
                 }, 1000);
             }
+
+             */
         }
     }, [pitchNote]);
 
@@ -108,13 +129,13 @@ function App() {
         const result = machine.playOneRandomNoteAndReturnIntervalResults(
             selectedIntervals.length > 1 ? selectedIntervals : Intervals
         );
-        console.log(result);
         setFirst(result.first);
         setInterval(result.interval);
         setSecond(result.second);
         setTimeout(() => {
             startOrStopPitchDetector();
-        }, 500);
+            setSnackOpen(true);
+        }, 1000);
     }
 
     const onReplay = () => {
@@ -247,6 +268,11 @@ function App() {
                     <h2>Singing {pitchNote}</h2>
                 </div>
             )}
+            <Snackbar open={snackOpen} autoHideDuration={2000}>
+                <Alert onClose={handleSnackOpen} severity="info" sx={{ width: '100%' }}>
+                    You can start singing
+                </Alert>
+            </Snackbar>
         </div>
     )
 }

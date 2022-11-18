@@ -14,6 +14,7 @@ export function getNoteString(note: Note, alteration: Alteration ): string {
 }
 
 export function getNoteFromPitch(frequency: number) {
+    // freq = note x 2^(N/12)
     const noteNum = 12 * (Math.log(frequency / 440)/Math.log(2));
     return Notes[(Math.round(noteNum) + 69) % 12];
 }
